@@ -51,6 +51,8 @@ export async function action({ request }) {
 }
 
 export default function SignupForm({ actionData }) {
+  console.log({ actionData });
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800">
       <Form

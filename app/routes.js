@@ -14,10 +14,12 @@ export default [
   route("signup", "routes/signup.jsx"),
   route("logout", "routes/logout.jsx"),
   route("my-orders", "routes/myOrders.jsx"),
+  route("/track-order/:orderId", "routes/trackOrder.jsx"),
   route("admin", "routes/dashboard.jsx"),
   route("admin/products", "routes/adminProducts.jsx"),
   route("admin/products/:id/edit", "routes/edit.jsx"),
   route("admin/products/add", "routes/add.jsx"),
   route("admin/orders", "routes/adminOrder.jsx"),
   route("admin/users", "routes/adminUser.jsx"),
+  route("admin/revenue", "routes/adminRevenue.jsx"),
 ];
