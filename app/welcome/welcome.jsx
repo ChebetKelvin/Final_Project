@@ -46,7 +46,7 @@ export function Welcome() {
   );
 }
 
-const resources = [
+let resources = [
   {
     href: "https://reactrouter.com/docs",
     text: "React Router Docs",
