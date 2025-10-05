@@ -51,10 +51,37 @@ export async function action({ request }) {
   let totalPrice = session.get("total") || 0;
   let checkoutId = null;
 
+  const USD_TO_KES = 150; // <-- Set this to the current exchange rate
+
   if (paymentMethod === "mobile") {
+    let amountKES = Math.round(totalPrice * USD_TO_KES);
     let safResponse = await stkPush({
       phone: phoneNumber,
-      amount: totalPrice,
+      amount: amountKES,
+      // Add orderData here if your stkPush/addPayments supports it
+      orderData: {
+        user: user.id,
+        item: cartProducts.map((product) => ({
+          product: product._id.toString(),
+          name: product.name,
+          quantity: product.quantity,
+          price: Number(product.price),
+          subtotal: Number(product.price) * product.quantity,
+          imageUrl: product.imageUrl || null,
+        })),
+        totalPrice,
+        paymentMethod,
+        shippingAddress: {
+          name,
+          email,
+          address,
+          city,
+          postalCode,
+          country,
+          phoneNumber,
+        },
+        createdAt: new Date(),
+      },
     });
 
     if (safResponse.error) {
@@ -71,9 +98,16 @@ export async function action({ request }) {
     }
 
     checkoutId = safResponse.CheckoutRequestID;
-  }
 
-  // For other payment methods, you may want to generate a unique ID or leave checkoutId null
+    // Show a message to the user to wait for payment confirmation
+    setErrorMessage(
+      session,
+      "Please complete payment on your phone. Your order will be created once payment is confirmed."
+    );
+    return redirect("/checkout", {
+      headers: { "Set-Cookie": await commitSession(session) },
+    });
+  }
 
   // ✅ Create order data
   let orderData = {

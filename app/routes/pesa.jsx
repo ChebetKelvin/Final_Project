@@ -1,5 +1,7 @@
 import { data } from "react-router";
 import { updateLatestPayment } from "../models/payments"; // Adjusted import to match the new model file
+import { getPaymentByCheckoutId } from "../models/payments"; // Import the function to get payment by Checkout ID
+import { createOrder } from "../models/order"; // Import the function to create an order
 
 export async function action({ request }) {
   console.log(" M-PESA Callback Hit");
@@ -60,6 +62,18 @@ export async function action({ request }) {
   };
   let result = await updateLatestPayment(checkoutId, updateData);
   console.log(" Mongo Update Result:", result);
+
+  if (ResultCode === 0) {
+    // Payment successful, fetch payment record
+    let payment = await getPaymentByCheckoutId(checkoutId);
+    if (payment && payment.orderData && !payment.orderCreated) {
+      await createOrder(payment.orderData);
+      // Optionally mark payment as orderCreated = true
+      await updateLatestPayment(checkoutId, { orderCreated: true });
+      console.log("Order created after payment confirmation.");
+    }
+  }
+
   console.log(` Payment updated for ${phone}`);
   console.log(` Payment updated for ${CheckoutRequestID}`);
   return data({ status: "ok" });

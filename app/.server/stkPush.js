@@ -20,7 +20,7 @@ export async function stkPush({ phone, amount }) {
     PartyA: phone,
     PartyB: shortcode,
     PhoneNumber: phone,
-    CallBackURL: "final-project-liard-phi.vercel.app/mpesa",
+    CallBackURL: "https://final-project-liard-phi.vercel.app/mpesa", // <-- FIXED: added https://
     AccountReference: `Order${timestamp}`,
     TransactionDesc: "Payment Test",
   };
