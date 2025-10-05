@@ -22,4 +22,7 @@ export default [
   route("admin/orders", "routes/adminOrder.jsx"),
   route("admin/users", "routes/adminUser.jsx"),
   route("admin/revenue", "routes/adminRevenue.jsx"),
+  route("mpesa", "routes/pesa.jsx"),
+  route("payment-status", "routes/payment-status.jsx"),
+  route("success", "routes/success.jsx"),
 ];

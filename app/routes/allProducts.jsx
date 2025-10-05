@@ -95,7 +95,7 @@ function ProductCard({ id, name, category, price, imageSrc, currency = "$" }) {
         <img
           src={imageSrc}
           alt={name}
-          className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+          className="w-full h-fit object-cover transform group-hover:scale-105 transition duration-500"
         />
       </div>
 

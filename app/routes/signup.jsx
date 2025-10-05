@@ -26,9 +26,9 @@ export async function action({ request }) {
   };
 
   let fieldErrors = {
-    name: validateText("name"),
-    email: validateText("email"),
-    password: validatePassword("password"),
+    name: validateText(name),
+    email: validateText(email),
+    password: validatePassword(password),
   };
 
   if (Object.values(fieldErrors).some(Boolean)) {

@@ -12,7 +12,7 @@ import Details from "../components/Details";
 
 export function meta() {
   return [
-    { title: "New React Router App" },
+    { title: "WeedShop" },
     { name: "description", content: "Welcome to React Router!" },
   ];
 }

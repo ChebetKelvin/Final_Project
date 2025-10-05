@@ -1,14 +1,11 @@
 // app/routes/checkout.jsx
 import { Form, useLoaderData, useActionData, redirect } from "react-router";
-import {
-  getSession,
-  commitSession,
-  setErrorMessage,
-  setSuccessMessage,
-} from "../.server/session";
+import { getSession, commitSession, setErrorMessage } from "../.server/session";
 import { getProducts } from "../models/product";
 import { createOrder } from "../models/order";
 import { getOrdersByUser } from "../models/order";
+import { useState } from "react";
+import { stkPush, normalizePhone } from "../.server/stkPush";
 
 // --- Action: handle checkout ---
 export async function action({ request }) {
@@ -25,7 +22,9 @@ export async function action({ request }) {
   let postalCode = formData.get("postalCode");
   let country = formData.get("country");
   let paymentMethod = formData.get("paymentMethod");
+  let phoneNumber = normalizePhone(formData.get("phoneNumber"));
 
+  // ✅ Check required fields
   if (
     !name ||
     !email ||
@@ -50,7 +49,33 @@ export async function action({ request }) {
   }
 
   let totalPrice = session.get("total") || 0;
+  let checkoutId = null;
 
+  if (paymentMethod === "mobile") {
+    let safResponse = await stkPush({
+      phone: phoneNumber,
+      amount: totalPrice,
+    });
+
+    if (safResponse.error) {
+      setErrorMessage(session, safResponse.error);
+      return redirect("/checkout", {
+        headers: { "Set-Cookie": await commitSession(session) },
+      });
+    }
+    if (!safResponse.CheckoutRequestID) {
+      setErrorMessage(session, "Failed to initiate payment.");
+      return redirect("/checkout", {
+        headers: { "Set-Cookie": await commitSession(session) },
+      });
+    }
+
+    checkoutId = safResponse.CheckoutRequestID;
+  }
+
+  // For other payment methods, you may want to generate a unique ID or leave checkoutId null
+
+  // ✅ Create order data
   let orderData = {
     user: user.id,
     item: cartProducts.map((product) => ({
@@ -64,19 +89,29 @@ export async function action({ request }) {
     totalPrice,
     status: "pending",
     paymentMethod,
-    shippingAddress: { name, email, address, city, postalCode, country },
+    paymentId: checkoutId || null, // Save the checkoutId if available
+    shippingAddress: {
+      name,
+      email,
+      address,
+      city,
+      postalCode,
+      country,
+      phoneNumber,
+    },
     createdAt: new Date(),
   };
 
   let results = await createOrder(orderData);
 
-  if (results.acknowledged) {
-    setSuccessMessage(session, "Order placed successfully! 🎉");
-  } else {
+  if (!results.acknowledged) {
     setErrorMessage(session, "Failed to place order.");
+    return redirect("/checkout", {
+      headers: { "Set-Cookie": await commitSession(session) },
+    });
   }
 
-  session.set("cartItems", []);
+  // ✅ Clear cart session
   session.set("cartProducts", []);
   session.set("total", 0);
 
@@ -134,6 +169,7 @@ export async function loader({ request }) {
 export default function CheckoutPage() {
   let { cartProducts, total, user, lastAddress } = useLoaderData();
   let actionData = useActionData();
+  let [selectedMethod, setSelectedMethod] = useState("");
 
   return (
     <section className="min-h-screen bg-neutral-950 text-neutral-300 py-24 px-6">
@@ -244,6 +280,7 @@ export default function CheckoutPage() {
                       name="paymentMethod"
                       value={method.id}
                       className="hidden peer"
+                      onChange={() => setSelectedMethod(method.id)}
                       required
                     />
                     <span
@@ -258,6 +295,16 @@ export default function CheckoutPage() {
                 ))}
               </div>
             </div>
+
+            {selectedMethod === "mobile" && (
+              <input
+                type="tel"
+                name="phoneNumber"
+                placeholder="M-Pesa Phone Number (e.g. 2547XXXXXXXX)"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-neutral-800 border border-green-800 text-neutral-200 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            )}
 
             <button
               type="submit"

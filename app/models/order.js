@@ -51,3 +51,25 @@ export async function getLastOrderAddress(userId) {
 
   return orders[0].shippingAddress; // adjust field name to your schema
 }
+export async function updateOrderPayment(checkoutRequestId, update) {
+  const orders = db.collection("orders");
+
+  return await orders.updateOne(
+    { checkoutRequestId },
+    {
+      $set: {
+        status: update.status,
+        receipt: update.receipt,
+        phone: update.phone,
+        paidAt: new Date(),
+      },
+    }
+  );
+}
+
+export async function saveCheckoutRequestId(orderId, checkoutRequestId) {
+  return collection.updateOne(
+    { _id: new ObjectId(orderId) },
+    { $set: { checkoutRequestId } }
+  );
+}
