@@ -78,3 +78,7 @@ export async function action({ request }) {
   console.log(` Payment updated for ${CheckoutRequestID}`);
   return data({ status: "ok" });
 }
+
+export default function Pesa() {
+  return <div className="p-6 text-gray-600">Processing M-PESA callback...</div>;
+}
